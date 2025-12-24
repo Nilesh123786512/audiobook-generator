@@ -51,18 +51,23 @@ def generate_audio(text, pipeline, voice_option="default.wav", sample_rate=24000
             found = True
 
     if not found:
-        # Better to raise error so user knows they need a file.
-        error_msg = f"Voice reference file '{voice_option}' not found. Please upload a .wav file to the 'voices' folder."
-        print(error_msg, file=sys.stderr)
-        raise FileNotFoundError(error_msg)
+        # Fallback to default generation if file not found
+        print(f"Voice reference file '{voice_option}' not found. Using default voice generation.", file=sys.stderr)
+        voice_path = None
 
-    print(f"Generating audio using voice prompt: {voice_path}")
+    if voice_path:
+        print(f"Generating audio using voice prompt: {voice_path}")
+    else:
+        print("Generating audio using default voice")
     
     try:
         time_start = time.time()
         
         # Generate audio (returns tensor)
-        wav = pipeline.generate(text, audio_prompt_path=voice_path)
+        if voice_path:
+            wav = pipeline.generate(text, audio_prompt_path=voice_path)
+        else:
+            wav = pipeline.generate(text)
         
         time_end = time.time()
         
