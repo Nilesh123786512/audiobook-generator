@@ -1,0 +1,60 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+
+
+{% block content %}
+<style>
+    body {
+        background-image: url('https://plus.unsplash.com/premium_photo-1661456342021-faa4a2ac84f1?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8YXVkaW9ib29rfGVufDB8fDB8fHww');
+        background-size: cover;      /* Ensures image covers the entire background */
+        background-repeat: no-repeat; /* Prevents image from repeating */
+        /* background-attachment: fixed; Optional: Makes image fixed during scrolling */
+    }
+</style>
+
+{# This outer container uses Flexbox to center its content vertically and horizontally #}
+{# vh-100 tries to make it full viewport height, works best with flex structure in base.html #}
+{# We remove the default container to control centering better #}
+<div class="d-flex flex-column justify-content-center align-items-center min-vh-100 px-3">
+
+    {# Limit the width of the content for better readability on wider screens #}
+    <div class="col-md-8 col-lg-6 text-center">
+
+        <div class="mb-4"> {# Margin below heading #}
+            <h2>Welcome to the Home Page!</h2>
+            <p class="lead">You can upload your PDF file and generate audio for a required portion.</p> {# Using lead paragraph class #}
+        </div>
+
+        {# The Form #}
+        {# justify-content-center added to center button if form layout changes #}
+        <form class="row g-3 justify-content-center border p-4 rounded shadow-sm bg-light" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data"> {# Added styling: border, padding, rounded corners, shadow, light background #}
+            <div class="mb-3 text-start"> {# Align label/input to the start (left) #}
+                <label for="formFile" class="form-label fw-bold">Upload PDF for Audio Generation:</label> {# Bolder label #}
+                {# Add accept attribute for better UX, and required #}
+                <input class="form-control form-control-lg" type="file" id="formFile" name="formFile" accept=".pdf" required> {# Larger input #}
+            </div>
+            <div class="col-12 text-center"> {# Ensure button is centered #}
+                <button type="submit" class="btn btn-primary btn-lg px-5">Upload PDF</button> {# Larger button, more padding #}
+            </div>
+        </form>
+
+    </div> {# End width limiter col-* #}
+</div> {# End Centering Flex Container #}
+{% endblock %}
+
+
+{% block footer %}
+{# Override the footer block from base.html #}
+{# mt-auto pushes it down if base.html body is d-flex flex-column min-vh-100 #}
+{# py-3 adds vertical padding, bg-body-tertiary gives subtle background #}
+<footer class="footer mt-auto py-3 bg-body-tertiary">
+  <div class="container"> {# Use container to constrain width #}
+    <div class="alert alert-warning text-center mb-0" role="alert"> {# text-center and remove bottom margin #}
+        Note that currently <b>only PDF files are allowed</b>.
+    </div>
+  </div>
+</footer>
+{% endblock %}

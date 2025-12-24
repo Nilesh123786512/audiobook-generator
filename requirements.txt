@@ -1,0 +1,13 @@
+
+#Application library
+Flask
+
+#PDF processing libraries
+PyPDF2
+PyMuPDF
+
+#Text to speech libraries
+numpy
+chatterbox-tts
+soundfile
+pydub

@@ -1,0 +1,62 @@
+<!-- templates/display_pdf.html -->
+{% extends "base.html" %}
+
+{% block title %}Select Pages & Generate Audio{% endblock %}
+
+{% block content %}
+<div class="container mt-4"> {# Main container for padding #}
+
+    {# 1. Centered Heading #}
+    <div class="row mb-4"> {# Row for the heading #}
+        <div class="col text-center"> {# Column that takes full width and centers text #}
+            
+            <p class="alert alert-primary"><b>Audio created in {{ time_taken }}s</b></p> {# Fallback content #}
+        </div>
+    </div>
+
+    {# 2. Two-Column Layout: PDF on Left, Form on Right #}
+    <div class="row g-4"> {# Row for the two columns, g-4 adds gutters (spacing) #}
+
+        {# Left Column: PDF Viewer #}
+        {# Takes up more space on medium and larger screens #}
+        <div class="col-md-7 col-lg-8">
+            <div class="pdf-viewer-container border rounded p-2 shadow-sm"> {# Optional wrapper for styling #}
+                <embed
+                    type="application/pdf"
+                    {# IMPORTANT: Ensure pdf_path is a web-accessible URL #}
+                    {# Usually generated with url_for('static', filename=...) if file is in static folder #}
+                    src="{{ pdf_file_path }}"
+                    width="100%" {# Fill the column width #}
+                    height="600px" {# Keep specified height #}
+                    alt="PDF Preview"
+                    pluginspage="https://www.adobe.com/products/acrobat/readstep.html">
+                    
+                </embed>
+            </div>
+        </div>
+
+        {# Right Column: Page Selection Form #}
+        {# Takes up remaining space #}
+        <div class="col-md-5 col-lg-4">
+            {# Add some styling to the form area #}
+            <div class="form-container border rounded p-4 shadow-sm bg-light">
+
+                <h2>High Quality audio</h2>
+                <audio controls>
+                    <source src="{{  high_audio_path }}" >
+                    Your browser does not support the audio element.
+                </audio>
+                
+                <h2>Medium Quality audio</h2>
+                <audio controls>
+                    <source src="{{  low_audio_path }}" >
+
+                    Your browser does not support the audio element.
+                  </audio>
+                  
+            </div> {# End form-container styling div #}
+        </div> {# End Right Column #}
+
+    </div> {# End Two-Column Row #}
+</div> {# End Main Container #}
+{% endblock %}
