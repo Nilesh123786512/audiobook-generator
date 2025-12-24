@@ -3,6 +3,9 @@ from pdf_utils import *  # Assuming this contains extract_and_structure_pymupdf
 from tts_utils import *
 from PyPDF2 import PdfReader
 import os
+from dotenv import load_dotenv
+
+load_dotenv() # Load environment variables from .env if present
 
 app = Flask(__name__)
 BOOK_FILE_NAME='book'

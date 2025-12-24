@@ -7,10 +7,16 @@ import time
 from functools import lru_cache
 import soundfile as sf
 import os
+from huggingface_hub import login
 
 @lru_cache(maxsize=None)  # Cache all results (or set a maxsize limit)
 def load_pipeline(lang_code='en'):
     try:
+        # Authenticate with Hugging Face if token is provided in environment
+        hf_token = os.getenv("HF_TOKEN")
+        if hf_token:
+            login(token=hf_token)
+
         device = "cuda" if torch.cuda.is_available() else "cpu"
         return ChatterboxTurboTTS.from_pretrained(device=device)
     except Exception as e:

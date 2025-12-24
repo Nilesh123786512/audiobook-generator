@@ -1,6 +1,6 @@
-
 #Application library
 Flask
+python-dotenv
 
 #PDF processing libraries
 PyPDF2
@@ -11,3 +11,4 @@ numpy
 chatterbox-tts
 soundfile
 pydub
+huggingface_hub
