@@ -22,7 +22,7 @@ def get_voice_options():
                 options.append({"name": f, "value": f})
     
     if not options:
-        options.append({"name": "Default (Please add .wav files to 'voices' folder)", "value": "default.wav"})
+        options.append({"name": "Default (Upload a .wav file to 'voices' folder)", "value": "default.wav"})
     return options
 
 @app.route("/", methods=["GET", "POST"])  # Assuming POST is for some other functionality or future use
@@ -107,16 +107,14 @@ def audio_generate():
         try:
             # Assuming KPipeline handles lang_code based on voice or a default like 'a' is fine.
             pipeline = load_pipeline() # from tts_utils
+            
             # Pass the selected_voice to generate_audio
+            # Now generate_audio raises descriptive exceptions on failure
             audio_data, time_taken = generate_audio(text, pipeline, voice_option=selected_voice)
 
-            if audio_data is None:
-                # generate_audio should ideally raise an exception or return an error indicator
-                print("Audio generation failed (audio_data is None).")
-                return "Audio generation failed. Check server logs.", 500
-
         except Exception as e:
-            print(f"Error during TTS processing or auṅdio generation: {e}")
+            import traceback
+            traceback.print_exc() # Print full stack trace to server logs
             return f"An error occurred during audio generation: {str(e)}", 500
 
         # Ensure static/uploads directory exists for saving audio

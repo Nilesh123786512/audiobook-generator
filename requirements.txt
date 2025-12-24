@@ -12,3 +12,4 @@ chatterbox-tts
 soundfile
 pydub
 huggingface_hub
+scipy
