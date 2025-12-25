@@ -2,3 +2,5 @@ test/
 __pycache__/
 todo.md
 venv/
+static/
+.env

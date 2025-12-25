@@ -9,6 +9,7 @@ import soundfile as sf
 import os
 from huggingface_hub import login
 import sys
+import re # Added regex module
 
 @lru_cache(maxsize=None)  # Cache all results (or set a maxsize limit)
 def load_pipeline(lang_code='en'):
@@ -24,6 +25,38 @@ def load_pipeline(lang_code='en'):
     except Exception as e:
         print(f"Failed to load ChatterboxTurboTTS: {e}", file=sys.stderr)
         raise
+
+def split_text(text, max_length=500):
+    """
+    Splits text into chunks respecting sentence boundaries to avoid model context overflow.
+    """
+    chunks = []
+    current_chunk = ""
+    # Split by sentence endings (.?!) followed by whitespace
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    
+    for sentence in sentences:
+        # Hard limit split: if a single sentence is huge (unlikely but possible), force split it
+        if len(sentence) > max_length:
+             # If current chunk has content, push it first
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+                current_chunk = ""
+            # Add the long sentence as its own chunk (or split further if needed, but keeping simple here)
+            chunks.append(sentence.strip())
+            continue
+
+        if len(current_chunk) + len(sentence) < max_length:
+            current_chunk += sentence + " "
+        else:
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+            current_chunk = sentence + " "
+            
+    if current_chunk:
+        chunks.append(current_chunk.strip())
+        
+    return chunks
 
 def generate_audio(text, pipeline, voice_option="default.wav", sample_rate=24000):
     # Determine voice path. Chatterbox Turbo requires a reference clip.
@@ -63,24 +96,54 @@ def generate_audio(text, pipeline, voice_option="default.wav", sample_rate=24000
     try:
         time_start = time.time()
         
-        # Generate audio (returns tensor)
-        if voice_path:
-            wav = pipeline.generate(text, audio_prompt_path=voice_path)
-        else:
-            wav = pipeline.generate(text)
+        # Step 1: Split text into chunks
+        chunks = split_text(text)
+        print(f"Processing: Text split into {len(chunks)} chunks for generation.")
+        
+        all_audio_segments = []
+
+        for i, chunk in enumerate(chunks):
+            if not chunk.strip():
+                continue
+            
+            # print(f"Generating chunk {i+1}/{len(chunks)}...") # Optional loop log
+            
+            # Generate audio for chunk
+            if voice_path:
+                wav = pipeline.generate(chunk, audio_prompt_path=voice_path)
+            else:
+                wav = pipeline.generate(chunk)
+            
+            if wav is None:
+                print(f"Warning: Chunk {i+1} failed to generate.")
+                continue
+
+            chunk_data = wav.cpu().numpy()
+            
+            # Squeeze dimensions if needed
+            if chunk_data.ndim == 2:
+                chunk_data = chunk_data.squeeze()
+                
+            all_audio_segments.append(chunk_data)
+            
+            # Add a short pause between sentences/chunks (e.g., 0.25 seconds)
+            silence_length = int(0.25 * sample_rate)
+            all_audio_segments.append(np.zeros(silence_length))
+
+        if not all_audio_segments:
+             raise RuntimeError("Model returned None for all chunks. Generation failed.")
+
+        # Step 2: Concatenate all audio segments
+        audio_data = np.concatenate(all_audio_segments)
         
         time_end = time.time()
         
-        if wav is None:
-            raise RuntimeError("Model returned None. Generation failed.")
-            
-        # Convert torch tensor to numpy for soundfile
-        audio_data = wav.cpu().numpy()
-        
-        # Squeeze dimensions if needed (1, N) -> (N,)
-        if audio_data.ndim == 2:
-            audio_data = audio_data.squeeze()
-            
+        # DEBUG: Check if audio is silence
+        print(f"DEBUG: Audio Shape: {audio_data.shape}")
+        print(f"DEBUG: Audio Amplitude - Max: {audio_data.max():.4f}, Min: {audio_data.min():.4f}")
+        if np.abs(audio_data).max() == 0:
+            print("DEBUG: WARNING - Generated audio is pure silence!")
+
         print("Audio generation completed successfully")
         
         # Display results
@@ -107,6 +170,8 @@ def convert_wav_to_mp3(input_filepath, output_filepath="audio.mp3"):
         print(f"Successfully converted '{input_filepath}' to '{output_filepath}'")
     except Exception as e:
         print(f"Error during conversion: {e}", file=sys.stderr)
+        # Ensure we don't crash if ffmpeg is missing, but maybe warn user
+        print("Tip: Install FFmpeg and add it to PATH for MP3 conversion to work.")
 
 def save_audio(audio_data, output_path_folder="static/", sampling_rate=24000, page_numbers=[1,20], voice_option="af_heart", book_name="book"):
     # Sanitize voice option name for filename
@@ -123,7 +188,10 @@ def save_audio(audio_data, output_path_folder="static/", sampling_rate=24000, pa
         
     try:
         sf.write(high_quality_audio_path, audio_data, sampling_rate)
-        convert_wav_to_mp3(output_filepath=low_quality_audio_path, input_filepath=high_quality_audio_path)
+        # Only try converting if wav write succeeded
+        if os.path.exists(high_quality_audio_path):
+            convert_wav_to_mp3(output_filepath=low_quality_audio_path, input_filepath=high_quality_audio_path)
+            
         print("Audio file saved successfully")
         return high_quality_audio_path, low_quality_audio_path
     except Exception as e:

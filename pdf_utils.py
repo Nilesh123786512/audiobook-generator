@@ -1,6 +1,5 @@
 from PyPDF2 import PdfReader
 import fitz  # PyMuPDF
-import spacy
 import collections
 import re
 def extract_specific_pages(pdf_path,pages=None):

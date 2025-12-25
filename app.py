@@ -100,6 +100,10 @@ def audio_generate():
 
         # text=preprocess_text(extract_specific_pages("static/uploads/book.pdf",pages=range(init_page,end_page+1)))
         text = extract_and_structure_pymupdf(pdf_file_path, pages=range(init_page, end_page + 1))
+        
+        # DEBUG: Check what text was actually extracted
+        print(f"DEBUG: Extracted text length: {len(text)} characters")
+        print(f"DEBUG: Text preview: {text[:100]}...")
 
         if not text or not text.strip():
             return "No text could be extracted from the selected PDF pages.", 400

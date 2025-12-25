@@ -7,8 +7,7 @@ PyPDF2
 PyMuPDF
 
 #Text to speech libraries
-numpy
-chatterbox-tts
+chatterbox-tts 
 soundfile
 pydub
 huggingface_hub
