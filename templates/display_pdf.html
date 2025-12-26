@@ -41,7 +41,7 @@
             <div class="form-container border rounded p-4 shadow-sm bg-light">
                 <h5 class="mb-3">Select Page Range & Voice:</h5> {# Modified heading #}
                 {# Point form to the correct endpoint #}
-                <form action="{{ url_for('audio_generate') }}" method="post">
+                <form action="{{ url_for('audio_generate') }}" method="post" enctype="multipart/form-data">
                     {# Use mb-3 for spacing in Bootstrap 5 instead of form-group #}
                     <div class="mb-3">
                         {# It's better practice to avoid spaces in 'name' and 'id' attributes #}
@@ -56,13 +56,19 @@
                     {# NEW: Voice Selection Dropdown #}
                     <div class="mb-3">
                         <label for="voiceOption" class="form-label">Select Voice:</label>
-                        <select class="form-select" id="voiceOption" name="voice_option" required>
+                        <select class="form-select" id="voiceOption" name="voice_option">
                             {% for voice in voices %}
                                 <option value="{{ voice.value }}" {% if voice.value == 'af_heart' %}selected{% endif %}>
                                     {{ voice.name }}
                                 </option>
                             {% endfor %}
                         </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="customVoice" class="form-label">Or Upload Custom Voice:</label>
+                        <input class="form-control" type="file" id="customVoice" name="custom_voice" accept=".wav,.mp3,.flac">
+                        <div class="form-text text-muted">Uploading a file here will override the selection above.</div>
                     </div>
                     {# END NEW: Voice Selection Dropdown #}
 

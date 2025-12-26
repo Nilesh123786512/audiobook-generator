@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, url_for # Added url_for
+from werkzeug.utils import secure_filename
 from pdf_utils import *  # Assuming this contains extract_and_structure_pymupdf
 from tts_utils import *
 from PyPDF2 import PdfReader
@@ -84,7 +85,21 @@ def audio_generate():
         try:
             init_page = int(request.form["initial_page"])
             end_page = int(request.form["final_page"])
-            selected_voice = request.form["voice_option"] # Get selected voice
+            
+            # Logic to determining voice: Check file upload first, then dropdown
+            selected_voice = request.form.get("voice_option")
+            
+            if 'custom_voice' in request.files:
+                file = request.files['custom_voice']
+                if file and file.filename != '':
+                    filename = secure_filename(file.filename)
+                    # Ensure unique or safe saving. Overwriting same name is allowed here.
+                    save_path = os.path.join("voices", filename)
+                    file.save(save_path)
+                    selected_voice = filename
+
+            if not selected_voice:
+                 return "Voice option is missing.", 400
 
             if not (1 <= init_page <= end_page):
                  return "Invalid page range selected.", 400

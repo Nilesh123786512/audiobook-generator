@@ -106,7 +106,7 @@ def generate_audio(text, pipeline, voice_option="default.wav", sample_rate=24000
             if not chunk.strip():
                 continue
             
-            # print(f"Generating chunk {i+1}/{len(chunks)}...") # Optional loop log
+            print(f"Generating chunk {i+1}/{len(chunks)}...") # Optional loop log
             
             # Generate audio for chunk
             if voice_path:
